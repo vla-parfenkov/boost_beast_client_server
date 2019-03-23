@@ -4,12 +4,13 @@
 
 #include "session.h"
 #include <iostream>
+#include <boost/beast/core/bind_handler.hpp>
 
 
 
 Session::Session(std::unique_ptr<boost::asio::ip::tcp::socket> socket,
         const RequestHandler& requestHandler,
-        std::function<void (std::shared_ptr<Session>)> abortedCallback): stream(std::move(socket)),
+        std::function<void (std::shared_ptr<Session>)> abortedCallback) : stream(std::move(socket)),
         abortedCallback(std::move(abortedCallback)),
         handler(requestHandler) {
 
@@ -22,9 +23,9 @@ void Session::read()
     stream.expires_after(std::chrono::seconds(30));
 
     http::async_read(stream, buffer, req,
-                     beast::bind_front_handler(
+                     beast::bind_handler(
                              &Session::onRead,
-                             shared_from_this()));
+                             std::shared_ptr<Session>(this)));
 }
 
 
@@ -32,7 +33,7 @@ void Session::close()
 {
     beast::error_code ec;
     stream.socket().shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
-    abortedCallback(shared_from_this());
+    abortedCallback( std::shared_ptr<Session>(this));
 }
 
 void Session::onRead(beast::error_code error, std::size_t bytesTransferred)
@@ -48,7 +49,7 @@ void Session::onRead(beast::error_code error, std::size_t bytesTransferred)
     if(error)
     {
         std::cerr << error.message()  << std::endl;
-        abortedCallback(shared_from_this());
+        abortedCallback(std::shared_ptr<Session>(this));
         return;
     }
 
@@ -63,9 +64,9 @@ void Session::write(http::message<isRequest, Body, Fields> &&msg)
     res = sp;
 
     http::async_write(stream, *sp,
-            beast::bind_front_handler(
+            beast::bind_handler(
                     &Session::onWrite,
-                    shared_from_this(),
+                    std::shared_ptr<Session>(this),
                     sp->need_eof()));
 }
 
@@ -75,7 +76,7 @@ void Session::onWrite(bool close, beast::error_code error, std::size_t bytes_tra
 
     if(error) {
         std::cerr << error.message() << std::endl;
-        abortedCallback(shared_from_this());
+        abortedCallback( std::shared_ptr<Session>(this));
         return;
     }
 
