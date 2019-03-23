@@ -4,15 +4,12 @@
 
 #include "session.h"
 #include <iostream>
-#include <boost/beast/core/bind_handler.hpp>
+#include "request_handler.h"
 
 
-
-Session::Session(std::unique_ptr<boost::asio::ip::tcp::socket> socket,
-        const RequestHandler& requestHandler,
-        std::function<void (std::shared_ptr<Session>)> abortedCallback) : stream(std::move(socket)),
-        abortedCallback(std::move(abortedCallback)),
-        handler(requestHandler) {
+Session::Session (boost::asio::ip::tcp::socket&& socket, const std::string& root,
+    std::function<void (std::shared_ptr<Session>)> abortedCallback) : stream(std::move(socket)),
+        abortedCallback(std::move(abortedCallback)), lambda(*this), root(root) {
 
 }
 
@@ -23,9 +20,9 @@ void Session::read()
     stream.expires_after(std::chrono::seconds(30));
 
     http::async_read(stream, buffer, req,
-                     beast::bind_handler(
+                     beast::bind_front_handler(
                              &Session::onRead,
-                             std::shared_ptr<Session>(this)));
+                              shared_from_this()));
 }
 
 
@@ -33,7 +30,7 @@ void Session::close()
 {
     beast::error_code ec;
     stream.socket().shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
-    abortedCallback( std::shared_ptr<Session>(this));
+    abortedCallback( shared_from_this() );
 }
 
 void Session::onRead(beast::error_code error, std::size_t bytesTransferred)
@@ -49,26 +46,13 @@ void Session::onRead(beast::error_code error, std::size_t bytesTransferred)
     if(error)
     {
         std::cerr << error.message()  << std::endl;
-        abortedCallback(std::shared_ptr<Session>(this));
+        abortedCallback( shared_from_this());
         return;
     }
 
-    handler.handleRequest(std::move(req), std::bind(&Session::write, this, std::placeholders::_1));
+    RequestHandler::handleRequest(root, std::move(req), lambda);
 }
 
-template<bool isRequest, class Body, class Fields>
-void Session::write(http::message<isRequest, Body, Fields> &&msg)
-{
-    auto sp = std::make_shared<http::message<isRequest, Body, Fields>>(std::move(msg));
-
-    res = sp;
-
-    http::async_write(stream, *sp,
-            beast::bind_handler(
-                    &Session::onWrite,
-                    std::shared_ptr<Session>(this),
-                    sp->need_eof()));
-}
 
 void Session::onWrite(bool close, beast::error_code error, std::size_t bytes_transferred)
 {
@@ -76,7 +60,7 @@ void Session::onWrite(bool close, beast::error_code error, std::size_t bytes_tra
 
     if(error) {
         std::cerr << error.message() << std::endl;
-        abortedCallback( std::shared_ptr<Session>(this));
+        abortedCallback(  shared_from_this() );
         return;
     }
 

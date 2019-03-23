@@ -17,10 +17,10 @@ private:
     boost::asio::io_service ioService;
     boost::asio::ip::tcp::acceptor tcpAcceptor;
     std::mutex sessionsMutex;
+    std::string directory;
 
     std::atomic_bool isStop;
     ThreadPool pool;
-    RequestHandler handler;
     std::set<std::shared_ptr<Session>> sessions;
 
 public:

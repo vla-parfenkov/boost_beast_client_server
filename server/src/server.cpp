@@ -13,9 +13,9 @@ void Server::start()
 {
     while (!isStop)
     {
-        auto tcpSocket = std::make_unique<boost::asio::ip::tcp::socket>(ioService);
+        auto tcpSocket = boost::asio::ip::tcp::socket(ioService);
         boost::system::error_code error;
-        tcpAcceptor.accept(*tcpSocket, error);
+        tcpAcceptor.accept(tcpSocket, error);
 
         if (error)
         {
@@ -23,7 +23,7 @@ void Server::start()
             continue;
         }
 
-        auto session = std::make_shared<Session>(std::move(tcpSocket), handler,
+        auto session = std::make_shared<Session>(std::move(tcpSocket), directory,
                                                                 [this](std::shared_ptr<Session> session) {
                                                                     std::unique_lock<std::mutex> lock(sessionsMutex);
                                                                     sessions.erase(session);
@@ -52,7 +52,8 @@ Server::~Server() {
 }
 
 Server::Server(const std::string &address, const std::string &port,
-        const std::string &directory, size_t poolSize) : tcpAcceptor(ioService), pool(poolSize), handler(directory)
+        const std::string &directory, size_t poolSize) : tcpAcceptor(ioService), pool(poolSize), 
+        directory(directory)
 {
 
     boost::asio::ip::tcp::resolver resolver(ioService);

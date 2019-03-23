@@ -4,32 +4,30 @@
 
 #include "request_handler.h"
 #include <regex>
-#include <request_handler.h>
 
 
-RequestHandler::RequestHandler(const std::string &root) : root(root)
+RequestHandler::RequestHandler()
 {
-    serverData = std::make_shared<ServerData> ();
-    const std::string server_filename = "server.json";
-    serverData->readDataFromFile(root + "/" + server_filename);
+    
 }
 
-template<class Body, class Allocator, bool isRequest, class Fields>
-void RequestHandler::handleRequest(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> &&req,
-                                   std::function<void(http::message<isRequest, Body, Fields> &&msg)> callBack) {
+template<class Body, class Allocator, class Send>
+void RequestHandler::handleRequest(const std::string& root, 
+        http::request<Body, boost::beast::http::basic_fields<Allocator>> &&req, 
+                                    Send&& send) {
 
     if( req.method() != http::verb::get)
     {
-        callBack(std::move(badRequest("Unknown HTTP-method", req)));
+        send(std::move(badRequest("Unknown HTTP-method", req)));
     }
 
     if( req.target().empty() ||
         req.target()[0] != '/' ||
         req.target().find("..") != beast::string_view::npos)
-        callBack(std::move(badRequest("Illegal request-target", req)));
+        send(std::move(badRequest("Illegal request-target", req)));
 
 
-    auto body = createBody(req.target(), req.method());
+    auto body = createBody(root, req.target(), req.method());
 
 
     auto const size = body.size();
@@ -43,7 +41,7 @@ void RequestHandler::handleRequest(boost::beast::http::request<Body, boost::beas
     res.content_length(size);
     res.keep_alive(req.keep_alive());
     res.body() = body;
-    callBack(std::move(res));
+    send(std::move(res));
 }
 
 template<class Body, class Allocator>
@@ -87,7 +85,19 @@ RequestHandler::~RequestHandler() {
 
 }
 
-const std::string RequestHandler::createBody(const std::string &cmd, http::verb method) {
+const std::string RequestHandler::createBody(const std::string& root, 
+        const std::string &cmd, http::verb method) {
+    auto serverData = std::make_shared<ServerData> ();
+    const std::string server_filename = "server.json";
+    serverData->readDataFromFile(root + "/" + server_filename);
+
+    std::unordered_map<std::string,
+        std::string(*)(const std::string&, std::shared_ptr<ServerData> ) > get_action =
+        {
+                { "/\s*all", getAllEmployers },
+                { "/\s*name/(.*?([a-zA-Z]+|\\d+)$)", getEmployerByName }
+        };
+
     //routing
     switch (method)
     {
