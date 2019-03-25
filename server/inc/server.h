@@ -17,7 +17,7 @@ private:
     boost::asio::io_service ioService;
     boost::asio::ip::tcp::acceptor tcpAcceptor;
     std::mutex sessionsMutex;
-    std::string directory;
+    RequestHandler requestHandler;
 
     std::atomic_bool isStop;
     ThreadPool pool;

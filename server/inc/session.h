@@ -58,14 +58,14 @@ private:
     http::request<http::string_body> req;
     std::shared_ptr<void> res;
     SendLambda lambda;
-    std::string root;
+    RequestHandler requestHandler;
 
     std::function<void (std::shared_ptr<Session>)> abortedCallback;
 
     void onRead(beast::error_code error, std::size_t bytesTransferred);
     void onWrite(bool close, beast::error_code error, std::size_t bytes_transferred);
 public:
-    Session (boost::asio::ip::tcp::socket&& socket, const std::string& root,
+    Session (boost::asio::ip::tcp::socket&& socket, const RequestHandler& requestHandler,
             std::function<void (std::shared_ptr<Session>)> abortedCallback);
 
     ~Session() = default;

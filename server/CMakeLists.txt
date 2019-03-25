@@ -10,5 +10,5 @@ endif()
 
 include_directories(inc)
 
-add_executable(sample_server src/main.cpp src/server_data.cpp src/request_handler.cpp src/session.cpp src/threadpool.cpp src/server.cpp)
+add_executable(sample_server src/main.cpp src/server_data.cpp src/session.cpp src/threadpool.cpp src/server.cpp)
 target_link_libraries(sample_server -pthread -lboost_program_options)

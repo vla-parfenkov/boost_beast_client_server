@@ -32,7 +32,9 @@ int main(int argc, char* argv[])
     cmdlineOptions.add(descGeneric).add(descServer);
 
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(cmdlineOptions).run(), vm);
+    boost::program_options::store(
+            boost::program_options::command_line_parser(argc, argv).options(cmdlineOptions).allow_unregistered().run(),
+            vm);
     boost::program_options::notify(vm);
 
     auto server = std::make_unique<Server>(addr, port, rootDir, poolSize);
