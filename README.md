@@ -20,6 +20,6 @@ cd ../..
 ## run
 ```shell
 cp server.json $HOME
-./server_sample
-./server_client
+./sample_server
+./sample_client
 ```
