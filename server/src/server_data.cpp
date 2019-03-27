@@ -57,7 +57,7 @@ std::string ServerData::getEmployeeByNameAsJsonString(const std::string &name)
 {
     std::stringstream stream;
 
-    std::cout << "find " << name << "from server.json" << std::endl;
+    std::cout << "find " << name << " from server.json" << std::endl;
 
     BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, employers.get_child("data"))
     {

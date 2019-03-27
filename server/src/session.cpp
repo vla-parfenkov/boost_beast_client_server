@@ -193,6 +193,7 @@ const std::string RequestHandler::createBody(beast::string_view&& view, http::ve
             if (view == "/") {
                 std::stringstream bs;
                 bs << body;
+                std::cout << bs.str() << std::endl;
                 boost::property_tree::ptree oper;
                 try {
                     boost::property_tree::read_json(bs, oper);
@@ -204,7 +205,7 @@ const std::string RequestHandler::createBody(beast::string_view&& view, http::ve
                         return "{ \"status\": 500, \"message\": \"Operation Don't sipport\" }";
                     }
 
-                } catch (const boost::property_tree::json_parser_error &error) {
+                } catch (const boost::property_tree::ptree_error &error) {
                     std::cerr << error.what() << std::endl;
                     return "{ \"status\": 400, \"message\": \"Wrong json data\" }";
                 }
