@@ -42,15 +42,19 @@ void ServerData::readDataFromFile(const std::string &path)
 std::string ServerData::getAllEmployersAsString()
 {
     std::stringstream stream;
-
-    BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, employers.get_child("data"))
+    try
     {
-        stream << "\"" << v.second.get_child("name").data() << "\"" << ",";
-    }
+        BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, employers.get_child("data"))
+        {
+            stream << "\"" << v.second.get_child("name").data() << "\"" << ",";
+        }
 
-    std::string str = stream.str();
-    str.pop_back();
-    return str;
+        std::string str = stream.str();
+        str.pop_back();
+        return str;
+    } catch (const boost::property_tree::ptree_error& error) {
+         throw std::invalid_argument("Wrong server.json file");
+    }
 }
 
 std::string ServerData::getEmployeeByNameAsJsonString(const std::string &name)
@@ -58,15 +62,19 @@ std::string ServerData::getEmployeeByNameAsJsonString(const std::string &name)
     std::stringstream stream;
 
     std::cout << "find " << name << " from server.json" << std::endl;
-
-    BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, employers.get_child("data"))
+    try
     {
-        if(v.second.get_child("name").data() == name)
+        BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, employers.get_child("data"))
         {
-            boost::property_tree::write_json(stream, v.second);
-            return stream.str();
+            if(v.second.get_child("name").data() == name)
+            {
+                boost::property_tree::write_json(stream, v.second);
+                return stream.str();
+            }
         }
+    } catch (const boost::property_tree::ptree_error& error) {
+         throw std::invalid_argument("Wrong server.json file");
     }
 
-    throw std::invalid_argument("Employers Noy found");
+    throw std::invalid_argument("Employers Not found");
 }

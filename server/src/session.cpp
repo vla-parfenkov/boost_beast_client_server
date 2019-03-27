@@ -218,8 +218,13 @@ const std::string RequestHandler::createBody(beast::string_view&& view, http::ve
 
 const std::string RequestHandler::getAllEmployers(const std::string &cmd,
         std::shared_ptr<ServerData> serverData)
-        {
-    return "{ \"status\": 200, \"data\": [" + serverData->getAllEmployersAsString() + "] }";
+{
+    try {
+        return "{ \"status\": 200, \"data\": [" + serverData->getAllEmployersAsString() + "] }";
+    } catch (const  std::invalid_argument& err)
+    {
+        return "{ \"status\": 500, \"message\": \" Wrong Server.json file \" }";
+    }
 }
 
 const std::string RequestHandler::getEmployerByName(const std::string &cmd,
