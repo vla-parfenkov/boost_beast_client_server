@@ -35,7 +35,7 @@ private:
     void serverError(beast::string_view why, Send&& send, size_t version, bool keep_alive);
 
     const std::string createBody (beast::string_view&& view,
-            http::verb&& method);
+            http::verb&& method,const  std::string& body);
 
     static const std::string getAllEmployers(const std::string& cmd, std::shared_ptr<ServerData> serverData);
     static const std::string getEmployerByName(const std::string& cmd, std::shared_ptr<ServerData> serverData);

@@ -15,13 +15,14 @@
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 #include <memory>
+#include <iostream>
 
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 
-class Session : std::enable_shared_from_this<Session>
+class Session : public std::enable_shared_from_this<Session>
 {
 private:
     struct SendLambda
@@ -38,6 +39,7 @@ private:
         void
         operator()(http::message<isRequest, Body, Fields>&& msg) const
         {
+            //std::cout << "write" << std::endl;
             auto sp = std::make_shared<
                 http::message<isRequest, Body, Fields>>(std::move(msg));
 
@@ -67,8 +69,6 @@ private:
 public:
     Session (boost::asio::ip::tcp::socket&& socket, const RequestHandler& requestHandler,
             std::function<void (std::shared_ptr<Session>)> abortedCallback);
-
-    ~Session() = default;
 
     void read();
     void close();

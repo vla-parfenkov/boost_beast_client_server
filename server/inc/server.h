@@ -7,6 +7,7 @@
 
 #include <boost/asio.hpp>
 #include <set>
+#include <thread>
 
 #include "threadpool.h"
 #include "session.h"
@@ -20,9 +21,13 @@ private:
     RequestHandler requestHandler;
 
     std::atomic_bool isStop;
-    ThreadPool pool;
+    //ThreadPool pool;
+    size_t poolSize;
+    std::vector<std::thread> threads;
     std::set<std::shared_ptr<Session>> sessions;
 
+    void onAccept(boost::beast::error_code ec, boost::asio::ip::tcp::socket socket);
+    void accept();
 public:
     void start();
     void stop();

@@ -48,13 +48,16 @@ std::string ServerData::getAllEmployersAsString()
         stream << "\"" << v.second.get_child("name").data() << "\"" << ",";
     }
 
-
-    return stream.str();
+    std::string str = stream.str();
+    str.pop_back();
+    return str;
 }
 
 std::string ServerData::getEmployeeByNameAsJsonString(const std::string &name)
 {
     std::stringstream stream;
+
+    std::cout << "find " << name << "from server.json" << std::endl;
 
     BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, employers.get_child("data"))
     {
@@ -65,5 +68,5 @@ std::string ServerData::getEmployeeByNameAsJsonString(const std::string &name)
         }
     }
 
-    return std::string("");
+    throw std::invalid_argument("Employers Noy found");
 }

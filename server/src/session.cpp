@@ -5,12 +5,13 @@
 #include "session.h"
 #include "request_handler.h"
 #include <iostream>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 
 Session::Session (boost::asio::ip::tcp::socket&& socket, const RequestHandler& requestHandler,
     std::function<void (std::shared_ptr<Session>)> abortedCallback) : stream(std::move(socket)),
         abortedCallback(std::move(abortedCallback)), lambda(*this), requestHandler(requestHandler) {
-
 }
 
 void Session::read()
@@ -18,6 +19,8 @@ void Session::read()
     req = {};
 
     stream.expires_after(std::chrono::seconds(30));
+
+    //std::cout << "read" << std::endl;
 
     http::async_read(stream, buffer, req,
                      beast::bind_front_handler(
@@ -29,12 +32,14 @@ void Session::read()
 void Session::close()
 {
     beast::error_code ec;
+     //std::cout << "close" << std::endl;
     stream.socket().shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
     abortedCallback( shared_from_this() );
 }
 
 void Session::onRead(beast::error_code error, std::size_t bytesTransferred)
 {
+    //std::cout << "onread" << std::endl;
     boost::ignore_unused(bytesTransferred);
 
     if(error == http::error::end_of_stream)
@@ -56,6 +61,7 @@ void Session::onRead(beast::error_code error, std::size_t bytesTransferred)
 
 void Session::onWrite(bool close, beast::error_code error, std::size_t bytes_transferred)
 {
+    //std::cout << "onwrite" << std::endl;
     boost::ignore_unused(bytes_transferred);
 
     if(error) {
@@ -71,7 +77,7 @@ void Session::onWrite(bool close, beast::error_code error, std::size_t bytes_tra
     }
 
     res = nullptr;
-
+    
     read();
 }
 
@@ -88,7 +94,9 @@ template<class Body, class Allocator, class Send>
 void RequestHandler::handleRequest(http::request<Body, boost::beast::http::basic_fields<Allocator>> &&req, 
                                     Send&& send) {
 
-    if( req.method() != http::verb::get)
+    //std::cout << "handle" << std::endl;
+
+    if( (req.method() != http::verb::get) && (req.method() != http::verb::post))
     {
         badRequest("Unknown HTTP-method", send, req.version(), req.keep_alive());
         return;
@@ -102,21 +110,19 @@ void RequestHandler::handleRequest(http::request<Body, boost::beast::http::basic
         return;
     }
 
+    std::cout << "receive <- " << req.body() << std::endl;
 
-    auto body = createBody(req.target(), req.method());
+    auto body = createBody(req.target(), req.method(), req.body());
+
+    std::cout << "send -> " << body << std::endl;
 
 
-    auto const size = body.size();
-
-    http::response<http::string_body> res{
-            std::piecewise_construct,
-            std::make_tuple(std::move(body)),
-            std::make_tuple(http::status::ok, req.version())};
+    http::response<http::string_body> res{http::status::ok, req.version()};
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, "application/json");
-    res.content_length(size);
     res.keep_alive(req.keep_alive());
     res.body() = body;
+    res.prepare_payload();
     send(std::move(res));
 }
 
@@ -164,7 +170,8 @@ RequestHandler::~RequestHandler() {
 
 }
 
-const std::string RequestHandler::createBody(beast::string_view&& view, http::verb&& method)
+const std::string RequestHandler::createBody(beast::string_view&& view, http::verb&& method,
+        const std::string& body)
  {
     std::string cmd(view);
     //routing
@@ -178,6 +185,28 @@ const std::string RequestHandler::createBody(beast::string_view&& view, http::ve
                 if (std::regex_match(cmd, regex))
                 {
                     return act.second(cmd, serverData);
+                }
+            }
+        }
+        case http::verb::post:
+        {
+            if (view == "/") {
+                std::stringstream bs;
+                bs << body;
+                boost::property_tree::ptree oper;
+                try {
+                    boost::property_tree::read_json(bs, oper);
+                    if (oper.get_child("oper").data() == "get-name") {
+                        return getEmployerByName("/" + oper.get_child("name").data(), serverData);
+                    } else if (oper.get_child("oper").data() == "get-all") {
+                        return getAllEmployers("", serverData);
+                    } else {
+                        return "{ \"status\": 500, \"message\": \"Operation Don't sipport\" }";
+                    }
+
+                } catch (const boost::property_tree::json_parser_error &error) {
+                    std::cerr << error.what() << std::endl;
+                    return "{ \"status\": 400, \"message\": \"Wrong json data\" }";
                 }
             }
         }
@@ -196,6 +225,13 @@ const std::string RequestHandler::getEmployerByName(const std::string &cmd,
         std::shared_ptr<ServerData> serverData)
 {
     std::size_t found = cmd.find_last_of('/');
-    return "{ \"status\": 200, \"data\": "
-            + serverData->getEmployeeByNameAsJsonString(cmd.substr(found + 1)) + "}";
+    try {
+        return "{ \"status\": 200, \"data\": "
+               + serverData->getEmployeeByNameAsJsonString(cmd.substr(found + 1)) + "}";
+    } catch (const  std::invalid_argument& err)
+    {
+        return "{ \"status\": 404, \"message\": \" Employer Not found \" }";
+    }
 }
+
+
