@@ -24,7 +24,8 @@ enum SubCmd
     UNKNOWN_SUB_CMD,
 };
 
-class CmdParser {
+class CmdParser 
+{
 private:
     po::options_description descGeneral {"General option"};
     po::options_description descGet {"Get option"};

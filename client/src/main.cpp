@@ -5,12 +5,14 @@
 #include "client.h"
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) 
+{
 
     std::string port;
     std::string addr;
 
-    try {
+    try 
+    {
 
         boost::program_options::options_description desc("Options");
         desc.add_options()
@@ -27,7 +29,8 @@ int main(int argc, char* argv[]) {
         store(boost::program_options::command_line_parser(argc, argv).options(cmdline_options).run(), vm);
         notify(vm);
 
-        if (vm.count("help")) {
+        if (vm.count("help")) 
+        {
             std::cout << desc << std::endl;
             return 0;
         }
@@ -44,7 +47,8 @@ int main(int argc, char* argv[]) {
     auto client = std::make_unique<Client>();
     while(std::getline(std::cin, cmd))
     {
-        try {
+        try 
+        {
             std::string msg;
             std::vector<std::string> argv;
             cmdParser->parse(cmd);
@@ -52,7 +56,9 @@ int main(int argc, char* argv[]) {
             {
                 break;
             }
-            if (cmdParser->getGeneralCmd() == HELP || cmdParser->getGeneralCmd() >= UNKNOWN_GENERAL_CMD) {
+            if (cmdParser->getGeneralCmd() == HELP 
+                    || cmdParser->getGeneralCmd() >= UNKNOWN_GENERAL_CMD) 
+            {
                 std::cout << cmdParser->getDescGeneral() << std::endl;
                 std::cout << cmdParser->getDescGet() << std::endl;
                 continue;
@@ -63,7 +69,8 @@ int main(int argc, char* argv[]) {
                 argv.push_back(cmdParser->getVm()["name"].as<std::string>());
             }
             try {
-                msg = requestPars->createJsonRequest(cmdParser->getGeneralCmd(), cmdParser->getSubCmd(), argv);
+                msg = requestPars->createJsonRequest(cmdParser->getGeneralCmd(),
+                     cmdParser->getSubCmd(), argv);
             } catch (const std::invalid_argument& er)
             {
                 std::cout << cmdParser->getDescGeneral() << std::endl;

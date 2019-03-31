@@ -5,15 +5,18 @@
 #include <iostream>
 #include "client.h"
 
-Client::Client() : resolver(ioc), stream(ioc) {
+Client::Client() : resolver(ioc), stream(ioc) 
+{
 
 }
 
-Client::~Client() {
+Client::~Client() 
+{
 
 }
 
-const std::string Client::send(const std::string &msg) {
+const std::string Client::send(const std::string &msg) 
+{
     http::request<http::string_body> req{http::verb::post, "/", version};
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);

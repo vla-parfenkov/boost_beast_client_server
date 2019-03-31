@@ -37,8 +37,10 @@ private:
     const std::string createBody (beast::string_view&& view,
             http::verb&& method,const  std::string& body);
 
-    static const std::string getAllEmployers(const std::string& cmd, std::shared_ptr<ServerData> serverData);
-    static const std::string getEmployerByName(const std::string& cmd, std::shared_ptr<ServerData> serverData);
+    static const std::string getAllEmployers(const std::string& cmd,
+         std::shared_ptr<ServerData> serverData);
+    static const std::string getEmployerByName(const std::string& cmd,
+         std::shared_ptr<ServerData> serverData);
 
     mutable std::unordered_map<std::string, std::string> ext_to_mime =
             {

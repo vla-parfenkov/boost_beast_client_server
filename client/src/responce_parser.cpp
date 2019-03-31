@@ -6,22 +6,27 @@
 #include "responce_parser.h"
 #include "boost/property_tree/json_parser.hpp"
 
-ProtocolParser::ProtocolParser() {
+ProtocolParser::ProtocolParser() 
+{
 
 }
 
-ProtocolParser::~ProtocolParser() {
+ProtocolParser::~ProtocolParser() 
+{
 
 }
 
-const std::string ProtocolParser::createJsonRequest(GeneralCmd generalcmd, SubCmd subcmd, std::vector<std::string> argv) {
+const std::string ProtocolParser::createJsonRequest(GeneralCmd generalcmd,
+     SubCmd subcmd, std::vector<std::string> argv) 
+{
     boost::property_tree::ptree req;
     std::string  oper;
     std::stringstream stream;
 
     switch (generalcmd)
     {
-        case GET: {
+        case GET: 
+        {
             oper.append(generalcmd_to_string.at(GET));
             break;
         }
@@ -34,7 +39,8 @@ const std::string ProtocolParser::createJsonRequest(GeneralCmd generalcmd, SubCm
     oper.append("-");
     switch (subcmd)
     {
-        case NAME: {
+        case NAME: 
+        {
             oper.append(subcmd_to_string.at(NAME));
             req.put("oper", oper);
             req.put("name", argv.front());

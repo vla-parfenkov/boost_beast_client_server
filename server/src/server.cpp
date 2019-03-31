@@ -14,7 +14,8 @@ void Server::start()
 {
     accept();
 
-    try {
+    try 
+    {
         for (size_t i = 0; i < poolSize; ++i)
         {
             threads.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &ioService)));        
@@ -38,7 +39,8 @@ void Server::stop()
 }
 
 
-Server::~Server() {
+Server::~Server() 
+{
     stop();
 }
 
@@ -65,7 +67,6 @@ void Server::onAccept(boost::beast::error_code ec, boost::asio::ip::tcp::socket 
         std::cerr << "Accept error: " << ec << std::endl;
     } else 
     {
-        //std::cout << "onAccept" << std::endl; 
         auto session = std::make_shared<Session>(std::move(socket), requestHandler,
                                                             [this](std::shared_ptr<Session> session) {
                                                                 std::unique_lock<std::mutex> lock(sessionsMutex);
@@ -85,7 +86,6 @@ void Server::onAccept(boost::beast::error_code ec, boost::asio::ip::tcp::socket 
 
 void Server::accept() 
 {
-    //std::cout << "accept" << std::endl; 
 
     tcpAcceptor.async_accept(
             boost::asio::make_strand(ioService),

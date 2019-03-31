@@ -11,7 +11,8 @@
 
 
 
-class ServerData {
+class ServerData 
+{
 private:
     struct  Employee
     {

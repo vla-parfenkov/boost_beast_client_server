@@ -9,7 +9,8 @@
 #include <unordered_map>
 #include "cmd_parser.h"
 
-class ProtocolParser {
+class ProtocolParser 
+{
 private:
     mutable std::unordered_map<GeneralCmd, std::string> generalcmd_to_string =
             {

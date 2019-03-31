@@ -11,11 +11,13 @@
 #include <iostream>
 
 
-ServerData::ServerData() {
+ServerData::ServerData() 
+{
 
 }
 
-ServerData::~ServerData() {
+ServerData::~ServerData() 
+{
 
 }
 
@@ -44,7 +46,8 @@ std::string ServerData::getAllEmployersAsString()
     std::stringstream stream;
     try
     {
-        BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, employers.get_child("data"))
+        BOOST_FOREACH(const boost::property_tree::ptree::value_type &v,
+             employers.get_child("data"))
         {
             stream << "\"" << v.second.get_child("name").data() << "\"" << ",";
         }
@@ -52,7 +55,8 @@ std::string ServerData::getAllEmployersAsString()
         std::string str = stream.str();
         str.pop_back();
         return str;
-    } catch (const boost::property_tree::ptree_error& error) {
+    } catch (const boost::property_tree::ptree_error& error) 
+    {
          throw std::invalid_argument("Wrong server.json file");
     }
 }

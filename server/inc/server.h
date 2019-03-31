@@ -13,7 +13,8 @@
 #include "session.h"
 #include "request_handler.h"
 
-class Server {
+class Server 
+{
 private:
     boost::asio::io_service ioService;
     boost::asio::ip::tcp::acceptor tcpAcceptor;
@@ -21,7 +22,6 @@ private:
     RequestHandler requestHandler;
 
     std::atomic_bool isStop;
-    //ThreadPool pool;
     size_t poolSize;
     std::vector<std::thread> threads;
     std::set<std::shared_ptr<Session>> sessions;
@@ -32,7 +32,8 @@ public:
     void start();
     void stop();
 
-    Server(const std::string& address, const std::string & port, const std::string& directory, size_t poolSize);
+    Server(const std::string& address, const std::string & port,
+         const std::string& directory, size_t poolSize);
     ~Server();
 };
 

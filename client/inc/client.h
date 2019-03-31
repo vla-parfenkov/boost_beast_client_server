@@ -19,7 +19,8 @@ namespace http = beast::http;
 namespace net = boost::asio;
 using tcp = net::ip::tcp;
 
-class Client {
+class Client 
+{
 private:
     net::io_context ioc;
     tcp::resolver resolver;

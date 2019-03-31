@@ -23,11 +23,13 @@ CmdParser::CmdParser() : generalCmd(UNKNOWN_GENERAL_CMD), subCmd(UNKNOWN_SUB_CMD
 
 }
 
-CmdParser::~CmdParser() {
+CmdParser::~CmdParser() 
+{
 
 }
 
-void CmdParser::parse(const std::string &stream) {
+void CmdParser::parse(const std::string &stream) 
+{
     std::vector<std::string> cmds = tokenize(stream);
     po::options_description desc = descGeneral;
     po::parsed_options parsed = po::command_line_parser(cmds).options(desc).allow_unregistered().run();
@@ -60,7 +62,8 @@ void CmdParser::parse(const std::string &stream) {
 
 }
 
-std::vector<std::string> CmdParser::tokenize(const std::string &input) {
+std::vector<std::string> CmdParser::tokenize(const std::string &input) 
+{
     boost::escaped_list_separator<char> separator("\\",    // The escape characters.
                              "= ",    // The separator characters.
                              "\"\'" ); // The quote characters.
@@ -73,22 +76,27 @@ std::vector<std::string> CmdParser::tokenize(const std::string &input) {
     return result;
 }
 
-const boost::program_options::variables_map &CmdParser::getVm() const {
+const boost::program_options::variables_map &CmdParser::getVm() const 
+{
     return vm;
 }
 
-GeneralCmd CmdParser::getGeneralCmd() const {
+GeneralCmd CmdParser::getGeneralCmd() const 
+{
     return generalCmd;
 }
 
-SubCmd CmdParser::getSubCmd() const {
+SubCmd CmdParser::getSubCmd() const 
+{
     return subCmd;
 }
 
-const boost::program_options::options_description &CmdParser::getDescGeneral() const {
+const boost::program_options::options_description &CmdParser::getDescGeneral() const 
+{
     return descGeneral;
 }
 
-const boost::program_options::options_description &CmdParser::getDescGet() const {
+const boost::program_options::options_description &CmdParser::getDescGet() const 
+{
     return descGet;
 }
